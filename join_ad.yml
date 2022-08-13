@@ -1,0 +1,69 @@
+---
+  - name: Playbook to join hosts to Active Directory domain
+    hosts: "{{ match_host }}"
+    become: yes
+    handlers:
+      - name: restart auth services
+        service:
+          name: realmd
+          state: restarted
+        service:
+          name: sssd
+          state: restarted
+    tasks:
+      - name: Install the required packages
+        yum:
+          name: 
+            - realmd
+            - sssd-krb5
+            - sssd-ad
+            - sssd
+            - python3-pip
+            #- oddjob
+            #- oddjob-mkhomedir
+          state: present
+      - name: Check if server is already a domain member
+        shell: "realm list | grep -i -q {{ ADDomain }} && echo -n JOINED || echo -n NOTJOINED"
+        register: domain_check
+        changed_when: domain_check.stdout != 'JOINED'
+      - name: Install pexpect using pip
+        pip:
+          name: pexpect
+        when: domain_check.changed
+      - name: Join system to AD and add the computer object in the Linux OU
+        expect:
+          command: "/bin/bash -c \"/usr/sbin/realm join -v -U {{ ADJoinUsername }} {{ ADDomain }}\""
+          timeout: null
+          responses:
+            Password for *: "{{ ADJoinPassword }}"
+        notify: restart auth services
+        when: domain_check.changed
+      - name: Configure sssd.conf
+        template:
+          src: sssd.j2
+          dest: /etc/sssd/sssd.conf
+        notify: restart auth services
+      - name: Enable home directory creation on login
+        block:
+          - name: Write /usr/share/pam-configs/mkhomedir file
+            template:
+              src: mkhomedir.j2
+              dest: /usr/share/pam-configs/mkhomedir
+            notify: restart auth services
+          - name: Enable /usr/share/pam-configs/mkhomedir config
+            command: pam-auth-update --enable mkhomedir
+            notify: restart auth services
+      - name: Allow AD group to sudo
+        template:
+          src: sudo-ad-group.j2
+          dest: /etc/sudoers.d/{{ ADAdminGroup|replace(' ', '_') }}
+      - name: Start and enable the realmd service
+        service:
+          name: realmd
+          state: started
+          enabled: yes
+      - name: Start and enable the sssd service
+        service:
+          name: sssd
+          state: started
+          enabled: yes
