@@ -1,0 +1,22 @@
+---
+  - name: Playbook to disable multipathd with VMware storage
+    hosts: "{{ match_host }}"
+    become: yes
+    handlers:
+      - name: restart multipathd
+        service:
+          name: multipathd
+          state: restarted
+    tasks:
+      - name: Exclude VMware storage in multipathd config
+        blockinfile:
+          path: /etc/multipath.conf
+          marker: "# {mark} ANSIBLE MANAGED BLOCK"
+          block: |
+            blacklist {
+                device {
+                    vendor "VMware"
+                    product "Virtual disk"
+                }
+            }
+        notify: restart multipathd

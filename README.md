@@ -29,3 +29,8 @@ EOF
 ```
 ansible-playbook -i hosts.yml -e @vars.yml join_ad.yml
 ```
+
+## Disable multipathd for VMware storage
+```
+ansible-playbook -i hosts.yml -e match_host=all disable_multipathd_vmware.yml
+```
