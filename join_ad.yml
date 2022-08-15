@@ -12,7 +12,7 @@
           state: restarted
     tasks:
       - name: Install the required packages
-        yum:
+        apt:
           name: 
             - realmd
             - sssd-krb5
