@@ -1,0 +1,30 @@
+---
+  - name: Playbook to deploy crowdstrike
+    hosts: "{{ match_host }}"
+    become: yes
+    handlers:
+      - name: start and enable falcon-sensor service
+        service:
+          name: falcon-sensor
+          state: started
+          enabled: yes
+    tasks:
+      - name: determine whether crowdstrike is already installed
+        command: dpkg-query -W falcon-sensor
+        register: falcon_sensor_check_deb
+        failed_when: falcon_sensor_check_deb.rc > 1
+        changed_when: falcon_sensor_check_deb.rc == 1
+      - name: download crowdstrike installer
+        get_url:
+          url: "{{ crowdstrike_http_url }}"
+          dest: /tmp/
+          mode: '0755'
+        register: download
+        when: falcon_sensor_check_deb.rc == 1
+      - name: Install falcon-sensor
+        apt: deb="{{ download.dest }}"
+        when: falcon_sensor_check_deb.rc == 1
+      - name: Configure crowdstrike CID
+        command: "/opt/CrowdStrike/falconctl -s --cid={{ CID }}"
+        when: falcon_sensor_check_deb.rc == 1
+        notify: start and enable falcon-sensor service
