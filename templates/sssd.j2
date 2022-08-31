@@ -2,7 +2,7 @@
 [sssd]
 domains = {{ ADDomain|lower }}
 config_file_version = 2
-services = nss, pam
+services = nss, pam, ssh
 
 [domain/{{ ADDomain|lower }}]
 default_shell = /bin/bash
@@ -25,3 +25,5 @@ krb5_canonicalize = false
 dns_discovery_domain = {{ ADDomain|lower }}
 ignore_group_members = True
 simple_allow_groups = {{ ADAdminGroup }}
+ldap_user_extra_attrs = altSecurityIdentities
+ldap_user_ssh_public_key = altSecurityIdentities
