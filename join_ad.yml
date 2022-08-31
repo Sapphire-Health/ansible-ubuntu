@@ -10,6 +10,9 @@
         service:
           name: sssd
           state: restarted
+        service:
+          name: ssh
+          state: restarted
     tasks:
       - name: Install the required packages
         apt:
@@ -57,6 +60,13 @@
         template:
           src: sudo-ad-group.j2
           dest: /etc/sudoers.d/{{ ADAdminGroup|replace(' ', '_') }}
+      - name: Insert/Update "Match User" configuration block in /etc/ssh/sshd_config
+        ansible.builtin.blockinfile:
+          path: /etc/ssh/sshd_config
+          block: |
+            AuthorizedKeysCommand /usr/bin/sss_ssh_authorizedkeys
+            AuthorizedKeysCommandUser root
+        notify: restart auth services
       - name: Start and enable the realmd service
         service:
           name: realmd
