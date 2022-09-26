@@ -25,6 +25,12 @@ ADJoinPassword: "adpassword"
 EOF
 ```
 
+### Troubleshooting
+Delete sssd cache:
+```
+systemctl stop sssd; rm -rf /var/lib/sss/{db,mc}/*; systemctl start sssd
+```
+
 ### Run the playbook:
 ```
 ansible-playbook -i hosts.yml -e @vars.yml join_ad.yml
@@ -35,7 +41,7 @@ ansible-playbook -i hosts.yml -e @vars.yml join_ad.yml
 ansible-playbook -i hosts.yml -e match_host=all disable_multipathd_vmware.yml
 ```
 ---
-## Deplow Crowdstrike
+## Deploy Crowdstrike
 
 ### Create vars required by playbook:
 ```
