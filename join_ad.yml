@@ -4,13 +4,13 @@
     become: yes
     handlers:
       - name: restart auth services
-	      service:
-	        name: "{{ item }}"
-	        state: restarted
-	      with_items:
-	        - sssd
-	        - ssh
-	        - realmd
+        service:
+          name: "{{ item }}"
+          state: restarted
+        with_items:
+          - sssd
+          - ssh
+          - realmd
     tasks:
       - name: Install the required packages
         apt:
