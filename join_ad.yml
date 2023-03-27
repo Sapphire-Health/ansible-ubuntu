@@ -20,8 +20,10 @@
             - sssd-ad
             - sssd
             - python3-pip
+            - packagekit
             #- oddjob
             #- oddjob-mkhomedir
+          update_cache: yes
           state: present
       - name: Check if server is already a domain member
         shell: "realm list | grep -i -q {{ ADDomain }} && echo -n JOINED || echo -n NOTJOINED"
