@@ -36,7 +36,7 @@
       - name: Join system to AD and add the computer object in the Linux OU
         expect:
           command: "/bin/bash -c \"/usr/sbin/realm join -v -U {{ ADJoinUsername }} {{ ADDomain }}\""
-          timeout: null
+          timeout: 30
           responses:
             Password for *: "{{ ADJoinPassword }}"
         notify: restart auth services
